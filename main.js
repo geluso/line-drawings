@@ -133,7 +133,15 @@ function startLine(xx, yy) {
   LAST_XX = xx
   LAST_YY = yy
 
-  LINE_POINTS.push(new Point(xx, yy))
+  if (LINE_POINTS.length === 0) {
+    LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
+  } else {
+    let distance = Point.distanceP(LINE_POINTS[LINE_POINTS.length - 1], LAST_XX, LAST_YY)
+    console.log('start distance', distance)
+    if (distance > 5) {
+      LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
+    }
+  }
 
   IS_LEFT = false
   IS_RIGHT = false
@@ -194,10 +202,35 @@ function updateLine(xx, yy) {
 }
 
 function finishLine(xx, yy) {
+  console.log('pps', LINE_POINTS.length)
+
+  if (LINE_POINTS.length >= 4) {
+    let firstStart = LINE_POINTS[0]
+    let firstEnd = LINE_POINTS[0]
+
+    let lastStart = LINE_POINTS[LINE_POINTS.length - 2]
+    let lastEnd = LINE_POINTS[LINE_POINTS.length - 1]
+
+    let args = [
+      [firstStart.xx, firstStart.yy], [firstEnd.xx, firstEnd.yy],
+      [lastStart.xx, lastStart.yy], [lastEnd.xx, lastEnd.yy],
+    ]
+    let intersect = math.intersect(...args)
+    console.log('pts', LINE_POINTS)
+    console.log('args', args)
+    console.log('int', intersect)
+  }
+
   IS_LINING = false
 
   console.log('finish line')
-  LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
+
+  let distance = Point.distanceP(LINE_POINTS[LINE_POINTS.length - 1], LAST_XX, LAST_YY)
+  console.log('distance', distance)
+  if (distance > 5) {
+    LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
+  }
+
   drawLines()
 }
 
@@ -213,6 +246,12 @@ function drawLines() {
   let last1 = LINE_POINTS[LINE_POINTS.length - 1]
   let last2 = new Point(LAST_XX, LAST_YY)
   Util.line(CTX, last1, last2)
+
+  LINE_POINTS.forEach((point, index) => {
+    CTX.strokeStyle = 'black'
+    CTX.strokeText(`#${index} ${point.xx},${point.yy}`, point.xx, point.yy)
+  })
+
 }
 
 function jiggle() {
