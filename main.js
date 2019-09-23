@@ -3,6 +3,7 @@ import Line from './Line.js'
 import State from './State.js'
 
 import LineDrawer from './drawers/line-drawer.js'
+import PointDrawer from './drawers/point-drawer.js'
 
 import Util from './util.js'
 
@@ -202,28 +203,7 @@ function updateLine(xx, yy) {
 }
 
 function finishLine(xx, yy) {
-  console.log('pps', LINE_POINTS.length)
-
-  if (LINE_POINTS.length >= 4) {
-    let firstStart = LINE_POINTS[0]
-    let firstEnd = LINE_POINTS[0]
-
-    let lastStart = LINE_POINTS[LINE_POINTS.length - 2]
-    let lastEnd = LINE_POINTS[LINE_POINTS.length - 1]
-
-    let args = [
-      [firstStart.xx, firstStart.yy], [firstEnd.xx, firstEnd.yy],
-      [lastStart.xx, lastStart.yy], [lastEnd.xx, lastEnd.yy],
-    ]
-    let intersect = math.intersect(...args)
-    console.log('pts', LINE_POINTS)
-    console.log('args', args)
-    console.log('int', intersect)
-  }
-
   IS_LINING = false
-
-  console.log('finish line')
 
   let distance = Point.distanceP(LINE_POINTS[LINE_POINTS.length - 1], LAST_XX, LAST_YY)
   console.log('distance', distance)
@@ -232,6 +212,26 @@ function finishLine(xx, yy) {
   }
 
   drawLines()
+
+  if (LINE_POINTS.length >= 4) {
+    let firstStart = LINE_POINTS[0]
+    let firstEnd = LINE_POINTS[1]
+
+    let lastStart = LINE_POINTS[LINE_POINTS.length - 2]
+    let lastEnd = LINE_POINTS[LINE_POINTS.length - 1]
+
+    let args = [
+      [firstStart.xx, firstStart.yy], [firstEnd.xx, firstEnd.yy],
+      [lastStart.xx, lastStart.yy], [lastEnd.xx, lastEnd.yy],
+    ]
+
+    let intersect = math.intersect(...args)
+    if (intersect) {
+      console.log('draw int point')
+      PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+    }
+  }
+
 }
 
 function drawLines() {
