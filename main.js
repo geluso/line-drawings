@@ -88,7 +88,6 @@ function startLine(xx, yy) {
     LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
   } else {
     let distance = Point.distanceP(LINE_POINTS[LINE_POINTS.length - 1], LAST_XX, LAST_YY)
-    console.log('start distance', distance)
     if (distance > 5) {
       LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
     }
@@ -104,7 +103,6 @@ function startLine(xx, yy) {
   IS_FIRST_UP = false
   IS_FIRST_DOWN = false
 
-  console.log('start line')
   drawLines()
 }
 
@@ -151,8 +149,6 @@ function updateLine(xx, yy) {
     startLine(xx, yy)
   }
 
-  console.log('update line')
-
   let forceLastPoint = true
   drawLines(forceLastPoint)
 }
@@ -165,7 +161,6 @@ function finishLine(xx, yy) {
   IS_LINING = false
 
   let distance = Point.distanceP(LINE_POINTS[LINE_POINTS.length - 1], LAST_XX, LAST_YY)
-  console.log('distance', distance)
   if (distance > 5) {
     LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
   }
@@ -202,7 +197,6 @@ function pointIntersections(lines) {
       let point = doIntersect(line1, line2)
       if (point) {
         points.push(point)
-        console.log('intersect push', point)
       }
     }
   }
@@ -210,14 +204,12 @@ function pointIntersections(lines) {
   // always add the first point of each line
   let first = lines[0]
   points.push([first.p1.xx, first.p1.yy])
-  // PointDrawer.draw(CTX, first.p1)
-  console.log('first point push', first.p1)
+  PointDrawer.draw(CTX, first.p1)
 
   // always add the very last point
   let last = lines[lines.length - 1]
   points.push([last.p2.xx, last.p2.yy])
-  // PointDrawer.draw(CTX, last.p2)
-  console.log('last point push', last.p2)
+  PointDrawer.draw(CTX, last.p2)
 
   return points
 }
@@ -238,7 +230,6 @@ function threeClosestPoints(points, xx, yy) {
     return d1 - d2
   })
   let closest = [points[0], points[1], points[2]]
-  console.log('closest', closest)
   return closest
 }
 
@@ -250,8 +241,16 @@ function fillThreePoints(p1, p2, p3) {
   CTX.lineTo(p3[0], p3[1])
   CTX.closePath()
 
+  //CTX.fillStyle = randomRGB()
   CTX.fillStyle = 'black'
   CTX.fill()
+}
+
+function randomRGB() {
+  let red = Math.random() * 256
+  let green = Math.random() * 256
+  let blue = Math.random() * 256
+  return `rgb(${red}, ${green}, ${blue})`
 }
 
 function doIntersect(line1, line2) {
@@ -269,16 +268,45 @@ function doIntersect(line1, line2) {
   ]
 
   let intersect = math.intersect(...args)
+  // console.log('intersect', intersect)
+  // console.log('first', firstStart, firstEnd)
+  // console.log('second', lastStart, lastEnd)
+
+  let isAlongLine1 = alongLine(intersect, line1)
+  let isAlongLine2 = alongLine(intersect, line2)
+  if (!isAlongLine1 && !isAlongLine2) {
+    //console.log('not along either line')
+    return false
+  }
+
   if (intersect) {
-    console.log('draw int point')
-    // PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+    let xx = intersect[0]
+    let yy = intersect[1]
+    //CTX.strokeText(`${xx},${yy}`, xx, yy)
+    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
   }
 
   return intersect
 }
 
+function alongLine(intersect, line) {
+  let minXX = Math.min(line.p1.xx, line.p2.xx)
+  let maxXX = Math.max(line.p1.xx, line.p2.xx)
+
+  let minYY = Math.min(line.p1.yy, line.p2.yy)
+  let maxYY = Math.max(line.p1.yy, line.p2.yy)
+
+  let xx = intersect[0]
+  let yy = intersect[1]
+
+  let insideX = minXX <= xx && xx <= maxXX
+  let insideY = minYY <= yy && yy <= maxYY
+  //console.log('in xx', insideX, minXX, xx, maxXX)
+  //console.log('in yy', insideX, minYY, yy, maxYY)
+  return insideX && insideY
+}
+
 function drawLines(isForcingLastPoint=false) {
-  console.log('group')
   CTX.clearRect(0, 0, WIDTH, HEIGHT)
 
   LINE_GROUPS.forEach(drawOneLineGroup)
