@@ -213,25 +213,64 @@ function finishLine(xx, yy) {
 
   drawLines()
 
-  if (LINE_POINTS.length >= 4) {
-    let firstStart = LINE_POINTS[0]
-    let firstEnd = LINE_POINTS[1]
-
-    let lastStart = LINE_POINTS[LINE_POINTS.length - 2]
-    let lastEnd = LINE_POINTS[LINE_POINTS.length - 1]
-
-    let args = [
-      [firstStart.xx, firstStart.yy], [firstEnd.xx, firstEnd.yy],
-      [lastStart.xx, lastStart.yy], [lastEnd.xx, lastEnd.yy],
-    ]
-
-    let intersect = math.intersect(...args)
-    if (intersect) {
-      console.log('draw int point')
-      PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
-    }
+  let lines =[]
+  for (let i = 1; i < LINE_POINTS.length; i++) {
+    let line = {p1: LINE_POINTS[i - 1], p2: LINE_POINTS[i]}
+    lines.push(line)
   }
 
+  if (lines.length >= 3) {
+    let points = []
+    for (let i = 0; i < lines.length; i++) {
+      for (let j = i + 1; j < lines.length; j++) {
+        let line1 = lines[i]
+        let line2 = lines[j]
+        let point = doIntersect(line1, line2)
+        if (point) {
+          points.push(point)
+        }
+      }
+    }
+
+    console.log('points', points)
+    if (points.length === 3) {
+      let p1 = points[0]
+      let p2 = points[1]
+      let p3 = points[2]
+
+      let path =CTX.beginPath()
+      CTX.moveTo(p1[0], p1[1])
+      CTX.lineTo(p2[0], p2[1])
+      CTX.lineTo(p3[0], p3[1])
+      CTX.closePath()
+
+      CTX.fillStyle = 'black'
+      CTX.fill()
+    }
+  }
+}
+
+function doIntersect(line1, line2) {
+  if (line1 === line2) return
+
+  let firstStart = line1.p1
+  let firstEnd = line1.p2
+
+  let lastStart = line2.p1
+  let lastEnd = line2.p2
+
+  let args = [
+    [firstStart.xx, firstStart.yy], [firstEnd.xx, firstEnd.yy],
+    [lastStart.xx, lastStart.yy], [lastEnd.xx, lastEnd.yy],
+  ]
+
+  let intersect = math.intersect(...args)
+  if (intersect) {
+    console.log('draw int point')
+    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+  }
+
+  return intersect
 }
 
 function drawLines() {
