@@ -42,6 +42,9 @@ function main() {
   let randomFillButton = document.getElementById('random-fill')
   randomFillButton.addEventListener('click', randomFill)
 
+  let grayscaleFillButton = document.getElementById('grayscale-fill')
+  grayscaleFillButton.addEventListener('click', grayscaleFill)
+
   CTX = canvas.getContext('2d')
 }
 
@@ -217,20 +220,36 @@ function pointIntersections(lines) {
   return points
 }
 
-function fill(xx, yy) {
+function fill(xx, yy, color, backgroundColor) {
   if (!STATE.isFillMode) return
 
   let lines = getLines()
   let points = pointIntersections(lines)
   let closest = threeClosestPoints(points, xx, yy)
-  fillThreePoints(...closest)
+  fillThreePoints(...closest, color, backgroundColor)
 }
 
 function randomFill() {
   STATE.isFillMode = true
 
   for (let i = 0; i < 100; i++) {
-    fill(Math.random() * WIDTH, Math.random() * HEIGHT)
+    let color = randomRGB()
+    let backgroundColor = randomRGB()
+    fill(Math.random() * WIDTH, Math.random() * HEIGHT, color, backgroundColor)
+  }
+
+  STATE.isFillMode = false
+}
+
+function grayscaleFill() {
+  STATE.isFillMode = true
+
+  let choices = ['black', 'gray', 'lightgray']
+  let backgroundColor = 'white'
+  for (let i = 0; i < 100; i++) {
+    let index = Math.floor(choices.length * Math.random())
+    let color = choices[index]
+    fill(Math.random() * WIDTH, Math.random() * HEIGHT, color, backgroundColor)
   }
 
   STATE.isFillMode = false
@@ -246,7 +265,7 @@ function threeClosestPoints(points, xx, yy) {
   return closest
 }
 
-function fillThreePoints(p1, p2, p3) {
+function fillThreePoints(p1, p2, p3, color, backgroundColor) {
   if (!p1 || !p2 || !p3) return
   let path = CTX.beginPath()
   CTX.moveTo(p1[0], p1[1])
@@ -254,9 +273,12 @@ function fillThreePoints(p1, p2, p3) {
   CTX.lineTo(p3[0], p3[1])
   CTX.closePath()
 
-  CTX.fillStyle = randomRGB()
-  document.body.style.backgroundColor = randomRGB()
-  //CTX.fillStyle = 'black'
+  color = color || randomRGB()
+  backgroundColor = backgroundColor || 'white'
+
+  CTX.fillStyle = color
+  document.body.style.backgroundColor = backgroundColor
+
   CTX.fill()
 }
 
