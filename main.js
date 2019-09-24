@@ -39,6 +39,9 @@ function main() {
   canvas.addEventListener('mouseup', wrapCoordinates(finishLine))
   //canvas.addEventListener('mouseout', wrapCoordinates(finishLine))
   
+  let randomFillButton = document.getElementById('random-fill')
+  randomFillButton.addEventListener('click', randomFill)
+
   CTX = canvas.getContext('2d')
 }
 
@@ -204,12 +207,12 @@ function pointIntersections(lines) {
   // always add the first point of each line
   let first = lines[0]
   points.push([first.p1.xx, first.p1.yy])
-  PointDrawer.draw(CTX, first.p1)
+  //PointDrawer.draw(CTX, first.p1)
 
   // always add the very last point
   let last = lines[lines.length - 1]
   points.push([last.p2.xx, last.p2.yy])
-  PointDrawer.draw(CTX, last.p2)
+  //PointDrawer.draw(CTX, last.p2)
 
   return points
 }
@@ -221,6 +224,16 @@ function fill(xx, yy) {
   let points = pointIntersections(lines)
   let closest = threeClosestPoints(points, xx, yy)
   fillThreePoints(...closest)
+}
+
+function randomFill() {
+  STATE.isFillMode = true
+
+  for (let i = 0; i < 100; i++) {
+    fill(Math.random() * WIDTH, Math.random() * HEIGHT)
+  }
+
+  STATE.isFillMode = false
 }
 
 function threeClosestPoints(points, xx, yy) {
@@ -241,8 +254,9 @@ function fillThreePoints(p1, p2, p3) {
   CTX.lineTo(p3[0], p3[1])
   CTX.closePath()
 
-  //CTX.fillStyle = randomRGB()
-  CTX.fillStyle = 'black'
+  CTX.fillStyle = randomRGB()
+  document.body.style.backgroundColor = randomRGB()
+  //CTX.fillStyle = 'black'
   CTX.fill()
 }
 
@@ -272,18 +286,18 @@ function doIntersect(line1, line2) {
   // console.log('first', firstStart, firstEnd)
   // console.log('second', lastStart, lastEnd)
 
-  let isAlongLine1 = alongLine(intersect, line1)
-  let isAlongLine2 = alongLine(intersect, line2)
-  if (!isAlongLine1 && !isAlongLine2) {
-    //console.log('not along either line')
-    return false
-  }
-
   if (intersect) {
+    let isAlongLine1 = alongLine(intersect, line1)
+    let isAlongLine2 = alongLine(intersect, line2)
+    if (!isAlongLine1 && !isAlongLine2) {
+      //console.log('not along either line')
+      return false
+    }
+
     let xx = intersect[0]
     let yy = intersect[1]
     //CTX.strokeText(`${xx},${yy}`, xx, yy)
-    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+    //PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
   }
 
   return intersect
