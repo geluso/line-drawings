@@ -16,7 +16,7 @@ import {
 let CTX
 let SELECTED = null
 
-let STATE = new State(draw)
+let STATE = new State(drawLines)
 
 main()
 
@@ -42,35 +42,6 @@ function main() {
   CTX = canvas.getContext('2d')
 }
 
-function draw() {
-  CTX.clearRect(0, 0, WIDTH, HEIGHT)
-  STATE.lines.forEach(line => {
-    LineDrawer.draw(CTX, STATE, line)
-  })
-}
-
-function getAllPoints() {
-  let points = STATE.lines.reduce((accum, line) => {
-    return accum.concat(line.points)
-  }, [])
-  return points
-}
-
-function select(xx, yy) {
-  let minDistance
-  let closest
-
-  getAllPoints().forEach(pp => {
-    let distance = Point.distanceP(pp, xx, yy)
-    if (!closest || distance < minDistance) {
-      closest = pp
-      minDistance = distance
-    }
-  })
-
-  return closest
-}
-
 function wrapCoordinates(func) {
   return (ev) => {
     let xx = ev.offsetX
@@ -79,36 +50,9 @@ function wrapCoordinates(func) {
   }
 }
 
-function mousedown(xx, yy) {
-  SELECTED = select(xx, yy)
-}
+let LINE_GROUPS = []
+let LINE_POINTS = []
 
-function mousemove(xx, yy) {
-  if (SELECTED) {
-    SELECTED.xx = xx
-    SELECTED.yy = yy
-
-    for (let i = 1; i < STATE.lines.length; i++) {
-      let line1 = STATE.lines[i - 1]
-      let line2 = STATE.lines[i]
-      Line.alignControlPoints(line1, line2)
-    }
-
-    let firstLine = this.state.lines[0]
-    let lastLine = this.state.lines[this.state.lines.length - 1]
-    if (lastLine.end === firstLine.start) {
-      Line.alignControlPoints(lastLine, firstLine)
-    }
-
-    draw()
-  }
-}
-
-function mouseup(xx, yy) {
-  SELECTED = null
-}
-
-const LINE_POINTS = []
 let IS_FIRST = true
 let IS_LINING = false
 
@@ -222,20 +166,12 @@ function finishLine(xx, yy) {
   console.log('distance', distance)
   if (distance > 5) {
     LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
+
+    LINE_GROUPS.push(LINE_POINTS)
   }
 
   drawLines()
-
-  let lines = getLines()
-  if (lines.length >= 3) {
-    let points = pointIntersections(lines)
-    if (points.length === 3) {
-      let p1 = points[0]
-      let p2 = points[1]
-      let p3 = points[2]
-      fillThreePoints(p1, p2, p3)
-    }
-  }
+  LINE_POINTS = []
 }
 
 function getLines() {
@@ -318,47 +254,26 @@ function doIntersect(line1, line2) {
 }
 
 function drawLines() {
+  LINE_GROUPS.forEach(drawOneLineGroup)
+  drawOneLineGroup(LINE_POINTS)
+}
+
+function drawOneLineGroup(lines) {
   CTX.clearRect(0, 0, WIDTH, HEIGHT)
 
-  for (let i = 1; i < LINE_POINTS.length; i++) {
-    let p1 = LINE_POINTS[i - 1] 
-    let p2 = LINE_POINTS[i] 
+  for (let i = 1; i < lines.length; i++) {
+    let p1 = lines[i - 1] 
+    let p2 = lines[i] 
     Util.line(CTX, p1, p2)
   }
 
-  let last1 = LINE_POINTS[LINE_POINTS.length - 1]
+  let last1 = lines[lines.length - 1]
   let last2 = new Point(LAST_XX, LAST_YY)
   Util.line(CTX, last1, last2)
 
-  LINE_POINTS.forEach((point, index) => {
+  lines.forEach((point, index) => {
     CTX.strokeStyle = 'black'
     CTX.strokeText(`#${index} ${point.xx},${point.yy}`, point.xx, point.yy)
   })
-
-}
-
-function jiggle() {
-  getAllPoints().forEach(pp => {
-    pp.xx += pp.dxx
-    pp.yy += pp.dyy
-
-    if (pp.xx < 0 || pp.yy < 0 || pp.xx > WIDTH || pp.yy > HEIGHT) {
-      pp.chooseRandomDirection()
-    }
-
-    pp.xx = Math.max(pp.xx, 0)
-    pp.xx = Math.min(pp.xx, WIDTH)
-
-    pp.yy = Math.max(pp.yy, 0)
-    pp.yy = Math.min(pp.yy, HEIGHT)
-  })
-
-  for (let i = 1; i < STATE.lines.length; i++) {
-    let line1 = STATE.lines[i - 1]
-    let line2 = STATE.lines[i]
-    Line.alignControlPoints(line1, line2)
-  }
-
-  draw()
 }
 
