@@ -45,6 +45,9 @@ function main() {
   let grayscaleFillButton = document.getElementById('grayscale-fill')
   grayscaleFillButton.addEventListener('click', grayscaleFill)
 
+  let showAllIntersectsButton = document.getElementById('show-all-intersects')
+  showAllIntersectsButton.addEventListener('click', showAllIntersects)
+
   CTX = canvas.getContext('2d')
 }
 
@@ -207,15 +210,18 @@ function pointIntersections(lines) {
     }
   }
 
-  // always add the first point of each line
-  let first = lines[0]
-  points.push([first.p1.xx, first.p1.yy])
-  //PointDrawer.draw(CTX, first.p1)
 
-  // always add the very last point
-  let last = lines[lines.length - 1]
-  points.push([last.p2.xx, last.p2.yy])
-  //PointDrawer.draw(CTX, last.p2)
+  LINE_GROUPS.forEach(linePoints => {
+    // always add the first point of each line
+    let first = linePoints[0]
+    points.push([first.xx, first.yy])
+    //PointDrawer.draw(CTX, first.p1)
+
+    // always add the very last point
+    let last = linePoints[linePoints.length - 1]
+    points.push([last.xx, last.yy])
+    //PointDrawer.draw(CTX, last.p2)
+  })
 
   return points
 }
@@ -253,6 +259,14 @@ function grayscaleFill() {
   }
 
   STATE.isFillMode = false
+}
+
+function showAllIntersects() {
+  let lines = getLines()
+  let points = pointIntersections(lines)
+  points.forEach(intersect => {
+    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+  })
 }
 
 function threeClosestPoints(points, xx, yy) {
@@ -311,7 +325,7 @@ function doIntersect(line1, line2) {
   if (intersect) {
     let isAlongLine1 = alongLine(intersect, line1)
     let isAlongLine2 = alongLine(intersect, line2)
-    if (!isAlongLine1 && !isAlongLine2) {
+    if (!isAlongLine1 || !isAlongLine2) {
       //console.log('not along either line')
       return false
     }
