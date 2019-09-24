@@ -37,7 +37,7 @@ function main() {
   canvas.addEventListener('mousedown', wrapCoordinates(startLine))
   canvas.addEventListener('mousemove', wrapCoordinates(updateLine))
   canvas.addEventListener('mouseup', wrapCoordinates(finishLine))
-
+  //canvas.addEventListener('mouseout', wrapCoordinates(finishLine))
   
   CTX = canvas.getContext('2d')
 }
@@ -152,7 +152,9 @@ function updateLine(xx, yy) {
   }
 
   console.log('update line')
-  drawLines()
+
+  let forceLastPoint = true
+  drawLines(forceLastPoint)
 }
 
 function finishLine(xx, yy) {
@@ -166,35 +168,57 @@ function finishLine(xx, yy) {
   console.log('distance', distance)
   if (distance > 5) {
     LINE_POINTS.push(new Point(LAST_XX, LAST_YY))
-
-    LINE_GROUPS.push(LINE_POINTS)
   }
 
-  drawLines()
+  LINE_GROUPS.push(LINE_POINTS)
   LINE_POINTS = []
+
+  drawLines()
 }
 
 function getLines() {
   let lines =[]
-  for (let i = 1; i < LINE_POINTS.length; i++) {
-    let line = {p1: LINE_POINTS[i - 1], p2: LINE_POINTS[i]}
-    lines.push(line)
-  }
+  LINE_GROUPS.forEach(group => {
+    for (let i = 1; i < group.length; i++) {
+      let line = {p1: group[i - 1], p2: group[i]}
+      lines.push(line)
+    }
+  })
   return lines
 }
 
 function pointIntersections(lines) {
+  // lines is an array of [{p1, p2}] objects with .xx and .yy values
+  // points is an array of arrays like [[xx,yy], [xx,yy]]
+  // yeah, it's inconsistent and annoying.
   let points = []
+
   for (let i = 0; i < lines.length; i++) {
+    let line1 = lines[i]
+
     for (let j = i + 1; j < lines.length; j++) {
-      let line1 = lines[i]
       let line2 = lines[j]
+
       let point = doIntersect(line1, line2)
       if (point) {
         points.push(point)
+        console.log('intersect push', point)
       }
     }
   }
+
+  // always add the first point of each line
+  let first = lines[0]
+  points.push([first.p1.xx, first.p1.yy])
+  // PointDrawer.draw(CTX, first.p1)
+  console.log('first point push', first.p1)
+
+  // always add the very last point
+  let last = lines[lines.length - 1]
+  points.push([last.p2.xx, last.p2.yy])
+  // PointDrawer.draw(CTX, last.p2)
+  console.log('last point push', last.p2)
+
   return points
 }
 
@@ -247,33 +271,36 @@ function doIntersect(line1, line2) {
   let intersect = math.intersect(...args)
   if (intersect) {
     console.log('draw int point')
-    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+    // PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
   }
 
   return intersect
 }
 
-function drawLines() {
-  LINE_GROUPS.forEach(drawOneLineGroup)
-  drawOneLineGroup(LINE_POINTS)
-}
-
-function drawOneLineGroup(lines) {
+function drawLines(isForcingLastPoint=false) {
+  console.log('group')
   CTX.clearRect(0, 0, WIDTH, HEIGHT)
 
+  LINE_GROUPS.forEach(drawOneLineGroup)
+  drawOneLineGroup(LINE_POINTS, isForcingLastPoint)
+}
+
+function drawOneLineGroup(lines, isForcingLastPoint) {
   for (let i = 1; i < lines.length; i++) {
     let p1 = lines[i - 1] 
     let p2 = lines[i] 
     Util.line(CTX, p1, p2)
   }
 
-  let last1 = lines[lines.length - 1]
-  let last2 = new Point(LAST_XX, LAST_YY)
-  Util.line(CTX, last1, last2)
+  if (isForcingLastPoint) {
+    let last1 = lines[lines.length - 1]
+    let last2 = new Point(LAST_XX, LAST_YY)
+    Util.line(CTX, last1, last2)
+  }
 
   lines.forEach((point, index) => {
     CTX.strokeStyle = 'black'
-    CTX.strokeText(`#${index} ${point.xx},${point.yy}`, point.xx, point.yy)
+    // CTX.strokeText(`#${index} ${point.xx},${point.yy}`, point.xx, point.yy)
   })
 }
 
