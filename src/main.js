@@ -1,6 +1,6 @@
 import Point from './point.js'
-import Line from './Line.js'
-import State from './State.js'
+import Line from './line.js'
+import State from './state.js'
 
 import LineDrawer from './drawers/line-drawer.js'
 import PointDrawer from './drawers/point-drawer.js'
@@ -10,7 +10,8 @@ import Util from './util.js'
 import {
   WIDTH, HEIGHT, NUM_INITIAL_LINES,
   LINE_THICKNESS, POINT_SIZE, HALF_POINT_SIZE,
-  JIGGLE_FACTOR
+  JIGGLE_FACTOR,
+  IS_DRAWING_INTERSECTION_POINTS,
 } from './config.js'
 
 let CTX
@@ -212,7 +213,10 @@ function pointIntersections(lines) {
   // always add the very last point
   let last = lines[lines.length - 1]
   points.push([last.p2.xx, last.p2.yy])
-  //PointDrawer.draw(CTX, last.p2)
+  
+  if (IS_DRAWING_INTERSECTION_POINTS) {
+    PointDrawer.draw(CTX, last.p2)
+  }
 
   return points
 }

@@ -1,6 +1,6 @@
-import Point from './Point.js'
-import Line from './Line.js'
-import Util from './Util.js'
+import Point from './point.js'
+import Line from './line.js'
+import Util from './util.js'
 
 import {
   WIDTH, HEIGHT

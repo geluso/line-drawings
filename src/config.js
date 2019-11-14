@@ -41,3 +41,4 @@ export const IS_RANDOM_COLORS_INITIAL = false
 export const IS_DRAWING_MIDPOINTS_INITIAL = true
 export const IS_DRAWING_EVENLY_SPACED_INITIAL = false
 export const IS_CONTROL_POINTS_ALIGNED_INITIAL = true
+export const IS_DRAWING_INTERSECTION_POINTS = true
