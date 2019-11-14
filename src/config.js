@@ -1,5 +1,5 @@
-import Point from './point.js'
-import Line from './line.js'
+import Point from './point.js';
+import Line from './line.js';
 
 export const WIDTH = window.innerWidth
 export const HEIGHT = window.innerHeight
@@ -10,20 +10,22 @@ export const USE_PRECONFIGURED_LINES = false
 
 // this point needs to be the same instance between
 // the end of the first line and the start of the second
-let sharedPoint = new Point(400, 200)
+let sharedPoint = new Point(400, 200);
+
 export const PRECONFIGURED_LINES = [
-  new Line(
-    new Point(50, 200),
-    new Point(50, 150),
-    new Point(284, 282),
-    sharedPoint
-  ),
-  new Line(
-    sharedPoint,
-    new Point(600, 280),
-    new Point(341, 61),
-    new Point(252, 59)
-  )
+  // disabling due to circular import reference Line imports this file config
+  // new Line(
+  //   new Point(50, 200),
+  //   new Point(50, 150),
+  //   new Point(284, 282),
+  //   sharedPoint
+  // ),
+  // new Line(
+  //   sharedPoint,
+  //   new Point(600, 280),
+  //   new Point(341, 61),
+  //   new Point(252, 59)
+  // )
 ]
 
 export const LINE_THICKNESS = 3

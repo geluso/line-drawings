@@ -19,7 +19,7 @@ let SELECTED = null
 
 let STATE = new State(drawLines)
 
-main()
+document.addEventListener('DOMContentLoaded', main)
 
 window.requestAnimationFrame(jiggleLoop)
 function jiggleLoop() {
@@ -42,6 +42,12 @@ function main() {
   
   let randomFillButton = document.getElementById('random-fill')
   randomFillButton.addEventListener('click', randomFill)
+
+  let grayscaleFillButton = document.getElementById('grayscale-fill')
+  grayscaleFillButton.addEventListener('click', grayscaleFill)
+
+  let showAllIntersectsButton = document.getElementById('show-all-intersects')
+  showAllIntersectsButton.addEventListener('click', showAllIntersects)
 
   CTX = canvas.getContext('2d')
 }
@@ -205,39 +211,69 @@ function pointIntersections(lines) {
     }
   }
 
-  // always add the first point of each line
-  let first = lines[0]
-  points.push([first.p1.xx, first.p1.yy])
-  //PointDrawer.draw(CTX, first.p1)
-
   // always add the very last point
   let last = lines[lines.length - 1]
   points.push([last.p2.xx, last.p2.yy])
   
-  if (IS_DRAWING_INTERSECTION_POINTS) {
-    PointDrawer.draw(CTX, last.p2)
-  }
+  LINE_GROUPS.forEach(linePoints => {
+    // always add the first point of each line
+    let first = linePoints[0]
+    points.push([first.xx, first.yy])
+    //PointDrawer.draw(CTX, first.p1)
+
+    // always add the very last point
+    let last = linePoints[linePoints.length - 1]
+    points.push([last.xx, last.yy])
+
+    if (IS_DRAWING_INTERSECTION_POINTS) {
+      PointDrawer.draw(CTX, last)
+    }
+  })
 
   return points
 }
 
-function fill(xx, yy) {
+function fill(xx, yy, color, backgroundColor) {
   if (!STATE.isFillMode) return
 
   let lines = getLines()
   let points = pointIntersections(lines)
   let closest = threeClosestPoints(points, xx, yy)
-  fillThreePoints(...closest)
+  fillThreePoints(...closest, color, backgroundColor)
 }
 
 function randomFill() {
   STATE.isFillMode = true
 
   for (let i = 0; i < 100; i++) {
-    fill(Math.random() * WIDTH, Math.random() * HEIGHT)
+    let color = randomRGB()
+    let backgroundColor = randomRGB()
+    fill(Math.random() * WIDTH, Math.random() * HEIGHT, color, backgroundColor)
   }
 
   STATE.isFillMode = false
+}
+
+function grayscaleFill() {
+  STATE.isFillMode = true
+
+  let choices = ['black', 'gray', 'lightgray']
+  let backgroundColor = 'white'
+  for (let i = 0; i < 100; i++) {
+    let index = Math.floor(choices.length * Math.random())
+    let color = choices[index]
+    fill(Math.random() * WIDTH, Math.random() * HEIGHT, color, backgroundColor)
+  }
+
+  STATE.isFillMode = false
+}
+
+function showAllIntersects() {
+  let lines = getLines()
+  let points = pointIntersections(lines)
+  points.forEach(intersect => {
+    PointDrawer.draw(CTX, new Point(intersect[0], intersect[1]))
+  })
 }
 
 function threeClosestPoints(points, xx, yy) {
@@ -250,7 +286,7 @@ function threeClosestPoints(points, xx, yy) {
   return closest
 }
 
-function fillThreePoints(p1, p2, p3) {
+function fillThreePoints(p1, p2, p3, color, backgroundColor) {
   if (!p1 || !p2 || !p3) return
   let path = CTX.beginPath()
   CTX.moveTo(p1[0], p1[1])
@@ -258,9 +294,12 @@ function fillThreePoints(p1, p2, p3) {
   CTX.lineTo(p3[0], p3[1])
   CTX.closePath()
 
-  CTX.fillStyle = randomRGB()
-  document.body.style.backgroundColor = randomRGB()
-  //CTX.fillStyle = 'black'
+  color = color || randomRGB()
+  backgroundColor = backgroundColor || 'white'
+
+  CTX.fillStyle = color
+  document.body.style.backgroundColor = backgroundColor
+
   CTX.fill()
 }
 
@@ -293,7 +332,7 @@ function doIntersect(line1, line2) {
   if (intersect) {
     let isAlongLine1 = alongLine(intersect, line1)
     let isAlongLine2 = alongLine(intersect, line2)
-    if (!isAlongLine1 && !isAlongLine2) {
+    if (!isAlongLine1 || !isAlongLine2) {
       //console.log('not along either line')
       return false
     }
